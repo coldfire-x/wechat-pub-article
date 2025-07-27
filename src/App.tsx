@@ -1,10 +1,11 @@
-import { useState, useCallback, useMemo, useRef } from 'react';
+import { useState, useCallback, useMemo, useRef, useEffect } from 'react';
 import { TwoColumnLayout } from './components/Layout/TwoColumnLayout';
 import { Header } from './components/Layout/Header';
 import { MarkdownEditor } from './components/Editor/MarkdownEditor';
 import { ArticlePreview } from './components/Preview/ArticlePreview';
 import { processMarkdown } from './utils/markdownProcessor';
 import { TemplateProvider } from './contexts/TemplateContext';
+import { initGA, trackPageView } from './utils/analytics';
 import styled from 'styled-components';
 
 const AppContainer = styled.div`
@@ -57,6 +58,12 @@ This tool helps you convert **Markdown** content into styled HTML that's perfect
 
 Happy writing! 🎉`;
   });
+
+  // Initialize Google Analytics
+  useEffect(() => {
+    initGA();
+    trackPageView('WeChat Article Formatter');
+  }, []);
 
   const handleMarkdownChange = useCallback((value: string) => {
     setMarkdown(value);

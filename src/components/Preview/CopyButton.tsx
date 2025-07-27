@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import styled from 'styled-components';
 import { copyToClipboard, inlineCSSWithTemplate } from '../../utils/cssInliner';
 import { useTemplate } from '../../contexts/TemplateContext';
+import { trackEvent } from '../../utils/analytics';
 
 const Button = styled.button<{ isSuccess: boolean }>`
   background-color: ${props => props.isSuccess ? '#27ae60' : '#3498db'};
@@ -50,6 +51,14 @@ export const CopyButton: React.FC<CopyButtonProps> = ({ content, disabled = fals
       const success = await copyToClipboard(inlinedContent);
       if (success) {
         setIsSuccess(true);
+        
+        // Track copy event
+        trackEvent('copy_content', {
+          template: selectedTemplate.id,
+          copy_type: hasRichTextSupport ? 'rich_text' : 'html',
+          content_length: content.length
+        });
+        
         setTimeout(() => {
           setIsSuccess(false);
           setCopyType('unknown');

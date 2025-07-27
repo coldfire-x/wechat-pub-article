@@ -2,6 +2,7 @@ import React from 'react';
 import styled from 'styled-components';
 import type { TemplateId } from '../../types/template';
 import { getTemplateNames } from '../../templates/templateRegistry';
+import { trackEvent } from '../../utils/analytics';
 
 const SelectorContainer = styled.div`
   display: flex;
@@ -53,7 +54,14 @@ export const TemplateSelector: React.FC<TemplateSelectorProps> = ({
   const templates = getTemplateNames();
 
   const handleChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
-    onTemplateChange(event.target.value as TemplateId);
+    const newTemplateId = event.target.value as TemplateId;
+    onTemplateChange(newTemplateId);
+    
+    // Track template change
+    trackEvent('template_change', {
+      from_template: selectedTemplate,
+      to_template: newTemplateId
+    });
   };
 
   return (
