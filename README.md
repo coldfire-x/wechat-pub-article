@@ -201,6 +201,7 @@ If you encounter any issues or have questions:
 ## Buy me a coffee
 
 If you like this project, please consider buying me a coffee.
+![Buy me a coffee](./public/wechat-receive-money.webp)
 
 [![Buy me a coffee](./public/bmc_qr.png)](buymeacoffee.com/pengphy)
 
