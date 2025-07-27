@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { forwardRef } from 'react';
 import styled from 'styled-components';
 import { CopyButton } from './CopyButton';
 import { TemplateSelector } from './TemplateSelector';
@@ -47,10 +47,18 @@ const MobileContainer = styled.div`
 
 interface ArticlePreviewProps {
   htmlContent: string;
+  onScroll?: (scrollTop: number, scrollHeight: number, clientHeight: number) => void;
 }
 
-export const ArticlePreview: React.FC<ArticlePreviewProps> = ({ htmlContent }) => {
+export const ArticlePreview = forwardRef<HTMLDivElement, ArticlePreviewProps>(({ htmlContent, onScroll }, ref) => {
   const { selectedTemplateId, setSelectedTemplate } = useTemplate();
+  
+  const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
+    if (onScroll) {
+      const target = e.currentTarget;
+      onScroll(target.scrollTop, target.scrollHeight, target.clientHeight);
+    }
+  };
   
   return (
     <PreviewContainer>
@@ -67,11 +75,14 @@ export const ArticlePreview: React.FC<ArticlePreviewProps> = ({ htmlContent }) =
         </div>
       </PreviewHeader>
       
-      <MobileFrame>
+      <MobileFrame
+        ref={ref}
+        onScroll={handleScroll}
+      >
         <MobileContainer>
           <DynamicArticleContent htmlContent={htmlContent} />
         </MobileContainer>
       </MobileFrame>
     </PreviewContainer>
   );
-};
+});

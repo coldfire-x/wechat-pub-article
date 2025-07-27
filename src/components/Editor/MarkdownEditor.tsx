@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { forwardRef, useState } from 'react';
 import styled from 'styled-components';
 import { FileUploadButton } from './FileUploadButton';
 
@@ -22,6 +22,16 @@ const EditorHeader = styled.div`
 const EditorTitle = styled.div`
   font-weight: 500;
   color: #666;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+`;
+
+const AutoSaveIndicator = styled.span<{ show: boolean }>`
+  font-size: 12px;
+  color: #28a745;
+  opacity: ${props => props.show ? 1 : 0};
+  transition: opacity 0.3s ease;
 `;
 
 const TextArea = styled.textarea`
@@ -73,29 +83,55 @@ const TextArea = styled.textarea`
 interface MarkdownEditorProps {
   value: string;
   onChange: (value: string) => void;
+  onScroll?: (scrollTop: number, scrollHeight: number, clientHeight: number) => void;
   placeholder?: string;
 }
 
-export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
+export const MarkdownEditor = forwardRef<HTMLTextAreaElement, MarkdownEditorProps>(({
   value,
   onChange,
+  onScroll,
   placeholder = "Enter your Markdown content here..."
-}) => {
+}, ref) => {
+  const [showSaved, setShowSaved] = useState(false);
+
   const handleFileLoad = (content: string) => {
     onChange(content);
+  };
+
+  const handleScroll = (e: React.UIEvent<HTMLTextAreaElement>) => {
+    if (onScroll) {
+      const target = e.currentTarget;
+      onScroll(target.scrollTop, target.scrollHeight, target.clientHeight);
+    }
+  };
+
+  const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    onChange(e.target.value);
+    
+    // Show auto-save indicator
+    setShowSaved(true);
+    setTimeout(() => setShowSaved(false), 2000);
   };
 
   return (
     <EditorContainer>
       <EditorHeader>
-        <EditorTitle>Markdown Editor</EditorTitle>
+        <EditorTitle>
+          Markdown Editor
+          <AutoSaveIndicator show={showSaved}>
+            ✓ Auto-saved
+          </AutoSaveIndicator>
+        </EditorTitle>
         <FileUploadButton onFileLoad={handleFileLoad} />
       </EditorHeader>
       <TextArea
+        ref={ref}
         value={value}
-        onChange={(e) => onChange(e.target.value)}
+        onChange={handleChange}
+        onScroll={handleScroll}
         placeholder={placeholder}
       />
     </EditorContainer>
   );
-};
+});

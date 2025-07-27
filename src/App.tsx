@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo, useRef } from 'react';
 import { TwoColumnLayout } from './components/Layout/TwoColumnLayout';
 import { Header } from './components/Layout/Header';
 import { MarkdownEditor } from './components/Editor/MarkdownEditor';
@@ -20,7 +20,13 @@ const ContentArea = styled.div`
 `;
 
 function App() {
-  const [markdown, setMarkdown] = useState(`# Welcome to WeChat Article Formatter
+  const editorRef = useRef<HTMLTextAreaElement>(null);
+  const previewRef = useRef<HTMLDivElement>(null);
+  
+  // Load from localStorage on initial render
+  const [markdown, setMarkdown] = useState(() => {
+    const saved = localStorage.getItem('wechat-article-markdown');
+    return saved || `# Welcome to WeChat Article Formatter
 
 This tool helps you convert **Markdown** content into styled HTML that's perfectly compatible with WeChat's rich text editor.
 
@@ -49,10 +55,33 @@ This tool helps you convert **Markdown** content into styled HTML that's perfect
 - \`Inline code\` and code blocks
 - Links and more!
 
-Happy writing! 🎉`);
+Happy writing! 🎉`;
+  });
 
   const handleMarkdownChange = useCallback((value: string) => {
     setMarkdown(value);
+    // Save to localStorage
+    localStorage.setItem('wechat-article-markdown', value);
+  }, []);
+
+  const handleEditorScroll = useCallback((scrollTop: number, scrollHeight: number, clientHeight: number) => {
+    if (previewRef.current) {
+      const scrollPercentage = scrollTop / (scrollHeight - clientHeight);
+      const previewScrollHeight = previewRef.current.scrollHeight;
+      const previewClientHeight = previewRef.current.clientHeight;
+      const targetScrollTop = scrollPercentage * (previewScrollHeight - previewClientHeight);
+      previewRef.current.scrollTop = targetScrollTop;
+    }
+  }, []);
+
+  const handlePreviewScroll = useCallback((scrollTop: number, scrollHeight: number, clientHeight: number) => {
+    if (editorRef.current) {
+      const scrollPercentage = scrollTop / (scrollHeight - clientHeight);
+      const editorScrollHeight = editorRef.current.scrollHeight;
+      const editorClientHeight = editorRef.current.clientHeight;
+      const targetScrollTop = scrollPercentage * (editorScrollHeight - editorClientHeight);
+      editorRef.current.scrollTop = targetScrollTop;
+    }
   }, []);
 
   const htmlContent = useMemo(() => {
@@ -67,14 +96,18 @@ Happy writing! 🎉`);
           <TwoColumnLayout
             left={
               <MarkdownEditor
+                ref={editorRef}
                 value={markdown}
                 onChange={handleMarkdownChange}
+                onScroll={handleEditorScroll}
                 placeholder="Enter your Markdown content here..."
               />
             }
             right={
               <ArticlePreview
+                ref={previewRef}
                 htmlContent={htmlContent}
+                onScroll={handlePreviewScroll}
               />
             }
           />
